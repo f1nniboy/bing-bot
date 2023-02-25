@@ -1,7 +1,5 @@
-import { EmbedBuilder, ComponentBuilder, TextBasedChannel, Message, InteractionReplyOptions, TextChannel, AttachmentBuilder, MessageCreateOptions, CommandInteraction, MessageComponentInteraction, DMChannel, InteractionResponse, ThreadChannel, MessageEditOptions } from "discord.js";
+import { EmbedBuilder, ComponentBuilder, Message, InteractionReplyOptions, TextChannel, AttachmentBuilder, MessageCreateOptions, CommandInteraction, MessageComponentInteraction, DMChannel, InteractionResponse, ThreadChannel, MessageEditOptions } from "discord.js";
 import { APIActionRowComponent, APIActionRowComponentTypes } from "discord-api-types/v10";
-
-import { Command } from "./command.js";
 
 type Component = APIActionRowComponentTypes | APIActionRowComponent<APIActionRowComponentTypes>;
 

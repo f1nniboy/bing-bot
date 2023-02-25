@@ -1,7 +1,8 @@
 import { encoding_for_model } from "@dqbd/tiktoken";
 const encoding = encoding_for_model("text-davinci-003");
 
-export const GPT_MAX_PROMPT_LENGTH: number = 700;
+/* Maximum prompt length for a GPT-3 request, change this to your liking */
+export const GPT_MAX_PROMPT_LENGTH: number = 900;
 
 /**
  * Get the length of a prompt.

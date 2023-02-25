@@ -33,9 +33,6 @@ export interface ChatInteraction {
 export type ChatGeneratedInteraction = ChatInteraction & {
 	/* How many tries it took to generate the response */
 	tries: number;
-
-	/* Whether the conversation was reset, due to it expiring */
-	reset: boolean;
 }
 
 /* How many milliseconds a conversation stays active without an interaction */
@@ -255,9 +252,6 @@ export class Conversation extends EventEmitter {
 		/* Amount of attempted tries */
 		let tries: number = 0;
 
-		/* Whether the conversation had to be reset */
-		let wasReset: boolean = false;
-
 		/* ChatGPT response */
 		let data: ChatResponse | null = null;
 
@@ -361,7 +355,7 @@ export class Conversation extends EventEmitter {
 		/* Conversation history size stored in the database */
 		const cachedCount = await this.count();
 
-		/* Also update the last-updated time in the database for this conversation. */
+		/* Also update the last-updated time and message count in the database for this conversation. */
 		this.manager.bot.db.client
 			.from("conversations")
 			.update({
@@ -375,8 +369,7 @@ export class Conversation extends EventEmitter {
 
 		return {
 			...output,
-			tries,
-			reset: wasReset
+			tries
 		};
 	}
 

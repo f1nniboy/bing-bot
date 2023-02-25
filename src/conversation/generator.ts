@@ -212,7 +212,7 @@ export class Generator {
 		if (data.type === "Notice") {
 			return new Response()
 				.addEmbed(builder => builder
-					.setDescription(`${data.text} **...** <a:loading:1075151622835023872>`)
+					.setDescription(`${data.text} **...** ⌛`)
 					.setColor("Orange")
 				);
 		}
@@ -248,7 +248,7 @@ export class Generator {
 		/* If the received data is a chat notice request, simply add the notice to the formatted message. */
 		if (data.type === "ChatNotice") {
 			embeds.push(new EmbedBuilder()
-				.setDescription(`${(data as ChatNoticeMessage).notice} **...** <a:loading:1075151622835023872>`)
+				.setDescription(`${(data as ChatNoticeMessage).notice} **...** ⌛`)
 				.setColor("Orange")
 			);
 		}
@@ -276,13 +276,6 @@ export class Generator {
 					.setCustomId(randomUUID())
 				);
 
-			/* Add the button to remove the suggestions from the message. */
-			/*buttons.push(new ButtonBuilder()
-				.setEmoji("❌")
-				.setCustomId("clear")
-				.setStyle(ButtonStyle.Secondary)
-			);*/
-
 			const row = new ActionRowBuilder<ButtonBuilder>()
 				.addComponents(buttons);
 
@@ -295,14 +288,14 @@ export class Generator {
 		if (content.split("```").length % 2 === 0) content = `${content}\n\`\`\``;
 		if (content.split("**").length % 2 === 0) content = `${content}**`;
 
-		const formatted: string = `${content} **...** <a:loading:1075151622835023872>`;
+		const formatted: string = `${content} **...** ⌛`;
 
 		/* If the message would be too long, send it as an attachment. */
 		if (formatted.length > 2000) {
 			response.addAttachment(new AttachmentBuilder(Buffer.from(content))
 				.setName("output.txt"));
 
-			response.setContent(pending ? "<a:loading:1075151622835023872>" : "_ _");
+			response.setContent(pending ? "⌛" : "_ _");
 		} else {
 			/* Finally, set the actual content of the message. */
 			response.setContent(pending ? formatted : content);
@@ -355,16 +348,6 @@ export class Generator {
 
 		/* If one of the suggestion buuttons was already chosen, ignore this request. */
 		if (button.component.style === ButtonStyle.Success || button.component.disabled) return void await button.deferUpdate();
-
-		/* If the user reacted with ❌, remove the interaction buttons from the message. */
-		if (button.component.style === ButtonStyle.Secondary) {
-			return void await reply.edit({
-				content: reply.content,
-				embeds: reply.embeds,
-				components: [],
-				attachments: Array.from(reply.attachments.values()).map(data => data.toJSON() as JSONEncodable<AttachmentPayload>)
-			});
-		}
 
 		const buttons: ButtonBuilder[] = (ActionRowBuilder.from(reply.components[0]) as ActionRowBuilder<ButtonBuilder>)
 			.components
@@ -448,8 +431,6 @@ export class Generator {
 		/* If the message was sent by a bot, or the bot wasn't mentioned in the message, return. */
 		if (author.bot || (message.content !== messageContent ? false : !message.mentions.has(this.bot.client.user!, { ignoreEveryone: true }))) return;
 
-		if (author.id === "427418848984170506") return;
-
 		/* Clean up the message's content. */
 		const content: string = Utils.cleanContent(this.bot, messageContent);
 
@@ -499,13 +480,6 @@ export class Generator {
 		/* Get the assigned user of the thread. */
 		const assignedUser: User | null = await ownerOfThread(thread);
 		if (assignedUser === null) return;
-
-		/* If the user attached something, don't process it. */
-		if (content.length === 0 && message.attachments.size > 0) return void await new Response()
-			.addEmbed(builder => builder
-				.setDescription("I sadly cannot process attached files & images, *please send your content as a text message* 😔")
-				.setColor("Red")
-			).send(message);
 
 		/* Check whether the bot has sufficient permissions to execute this request. */
 		try {
@@ -620,7 +594,7 @@ export class Generator {
 		const remaining: number = (conversation.cooldown.state.startedAt! + conversation.cooldown.state.expiresIn!) - Date.now();
 
 		/* If the command is on cool-down, don't run the request. */
-		if (conversation.cooldown.active && remaining > (conversation.cooldown.state.expiresIn! / 2)) {
+		if (conversation.cooldown.active && remaining > conversation.cooldown.state.expiresIn! / 2) {
 			const reply = await message.reply({
 				embeds: [
 					new EmbedBuilder()
@@ -635,14 +609,14 @@ export class Generator {
 				await reply.delete().catch(() => {});
 			}, remaining);
 
-			await message.react("⌛").catch(() => {});
+			await message.react("🐢").catch(() => {});
 			return;
 
 		/* If the remaining time is negligible, wait for the cool-down to expire. */
 		} else if (conversation.cooldown.active) {
-			await message.react("<:loading:1075151622835023872>").catch(() => {});
+			await message.react("⌛").catch(() => {});
 			await new Promise<void>(resolve => conversation.cooldown.once("done", () => resolve()));
-			await removeReaction(this.bot, "loading", message);
+			await removeReaction(this.bot, "⌛", message);
 
 			/* If the user executed a different request in the mean time, simply ignore this one & move on. */
 			if (conversation.locked || conversation.session.locked) return;
@@ -827,13 +801,6 @@ export class Generator {
 					.setDescription("It seems like we had trouble generating the formatted message for your prompt.\n*The developers have been notified*.")
 					.setColor("Red")
 				).send(message);
-
-			if (final.reset) {
-				response.addEmbed(builder => builder
-					.setDescription("*Your previous conversation has expired, so we moved it to a newly-created one.*\n***Bing** does not remember the chat history anymore.* 😔")
-					.setColor("Yellow")
-				)
-			}
 
 			/* Final reply message to the invocation message */
 			let replyMessage: Message | null = null;

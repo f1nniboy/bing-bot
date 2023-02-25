@@ -58,60 +58,6 @@ export interface Database {
           name?: string
         }
       }
-      sessions: {
-        Row: {
-          active: boolean | null
-          id: string
-        }
-        Insert: {
-          active?: boolean | null
-          id: string
-        }
-        Update: {
-          active?: boolean | null
-          id?: string
-        }
-      }
-      usage: {
-        Row: {
-          id: string
-          initialAt: string
-          interactions: number
-          latestAt: string
-        }
-        Insert: {
-          id: string
-          initialAt?: string
-          interactions?: number
-          latestAt?: string
-        }
-        Update: {
-          id?: string
-          initialAt?: string
-          interactions?: number
-          latestAt?: string
-        }
-      }
-      users: {
-        Row: {
-          banned: boolean
-          dev: boolean
-          id: string
-          infractions: Json | null
-        }
-        Insert: {
-          banned?: boolean
-          dev?: boolean
-          id: string
-          infractions?: Json | null
-        }
-        Update: {
-          banned?: boolean
-          dev?: boolean
-          id?: string
-          infractions?: Json | null
-        }
-      }
     }
     Views: {
       [_ in never]: never

@@ -98,7 +98,7 @@ export class OpenAIManager {
         
                         /* Response data */
                         const data: OpenAICompletionsJSON = JSON.parse(event.data);
-                        if (data === null || data.choices === undefined) return;
+                        if (data === null || data.choices === undefined || (data.choices && data.choices.length === 0)) return;
 
                         latest = {
                             created: data.created,
