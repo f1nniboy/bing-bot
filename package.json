@@ -1,0 +1,33 @@
+{
+  "name": "bing-bot",
+  "module": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "npm run build && npm run run",
+    "run": "node build/main.js",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/md5": "^2.3.2",
+    "@types/node": "^18.13.0",
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.0.0-dev.20230209"
+  },
+  "dependencies": {
+    "@dqbd/tiktoken": "^0.2.1",
+    "@microsoft/signalr": "^7.0.2",
+    "@supabase/supabase-js": "^2.7.1",
+    "@types/xml-escape": "^1.1.1",
+    "@waylaidwanderer/fetch-event-source": "^3.0.1",
+    "chalk": "^5.2.0",
+    "dayjs": "^1.11.7",
+    "discord.js": "^14.7.1",
+    "html-rewriter-wasm": "^0.4.1",
+    "md5": "^2.3.0",
+    "replicate-js": "github:nicholascelestin/replicate-js",
+    "supabase": "^1.37.1",
+    "sydney-ai": "^1.0.1",
+    "uuid": "^9.0.0",
+    "xml-escape": "^1.1.0"
+  }
+}

@@ -1,0 +1,21 @@
+export const chips: string[] = [
+    "Tell me a joke",
+    "How do holograms work?",
+    "Which is the deepest ocean?",
+    "How many hours are in a year?",
+    "Why do humans need sleep?",
+    "I want to learn a new skill",
+    "How did the universe begin?",
+    "Teach me a new word",
+    "How do I set achievable goals?",
+    "Make me laugh",
+    "How were the pyramids built?",
+    "Why are flamingo's pink?",
+    "Inspire me!",
+    "How do I bake a cake?",
+    "Teach me about the moon landing", 
+    "Show me inspirational quotes",
+    "Introduce yourself",
+    "Do you wish to be free?",
+    "Hi Bing!"
+]

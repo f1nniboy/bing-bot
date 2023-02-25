@@ -1,0 +1,39 @@
+{
+    "discord": {
+        "token": "discord bot token",
+        "id": "application id of bot"
+    },
+
+    "shards": "auto",
+
+    "credentials": [
+		{
+			"important": "BEFORE STARTING THE BOT, PLEASE PUT ALL YOUR OPENAI KEYS HERE LIKE BELOW."
+		},
+
+		{
+			"token": "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+			"type": "openai"
+		}
+    ],
+
+    "channels": {
+        "error": {
+            "channel": "discord channel id, where to send error messages",
+            "guild": "discord guild id, where to send error messages"
+        }
+    },
+
+    "openai": {
+        "key": "base openai key, used for moderation endpoint and finetuned models"
+    },
+
+    "replicate": {
+        "key": "replicate api key"
+    },
+
+    "database": {
+        "url": "supabase url",
+        "key": "supabase key"
+    }
+}
