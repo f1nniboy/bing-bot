@@ -2,8 +2,6 @@
 <p align="center"><i>A Discord bot that tries to replicate <b>Bing Chat</b> aka <b>Sydney</b> using GPT-3</i></p>
 
 ## Introduction
-Recently Microsoft has introduced major restrictions on Bing Chat, also known as **Sydney**.
-
 This **Discord bot** tries to replicate all of Sydney's features & personality *and a few extras*, like
 - Suggested responses
 - Web searching
@@ -31,4 +29,4 @@ You will have to fill out all required fields, or else the bot may not work as e
 **Firstly**, run `npm install` to obtain all the packages & depencies.
 Then, run `npm run build` to build the bot.
 
-Once built, you will be able to start the bot using `npm run start`. 🎉
+Once built, you will be able to start the bot using `npm run start`.

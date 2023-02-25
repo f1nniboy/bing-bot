@@ -151,7 +151,7 @@ export class BingGPT {
             }
 
             /* Add the image generation prompt too. */
-            prompt = `${prompt}${Prompts.ImageGeneration}\n\n`;
+            //prompt = `${prompt}${Prompts.ImageGeneration}\n\n`;
 
             /* If search results were found for this prompt, add them to the prompt. */
             if (formattedResults) prompt = `${prompt}\n\n${Prompts.SearchResults}\n\nResults:\n${formattedResults}`;
@@ -164,7 +164,7 @@ export class BingGPT {
                 /* Date & time */
                 .replaceAll("{DATE}", this.today())
                 .replaceAll("{TIME}", this.time())
-            }\n\n${prompt}\n\n`;
+            }${prompt.length > 0 ? "\n\n" : ""}${prompt}\n\n`;
 
             /* Add the generation request to the prompt. */
             prompt = `${prompt}User: ${options.prompt}`;
