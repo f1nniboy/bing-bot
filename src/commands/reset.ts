@@ -13,10 +13,8 @@ export default class ResetCommand extends Command {
         super(bot,
             new SlashCommandBuilder()
                 .setName("reset")
-                .setDescription("Reset your conversation with Bing"),
-        {
-            cooldown: 5 * 1000
-        });
+                .setDescription("Reset your conversation with Bing")
+		);
     }
 
     public async run(interaction: CommandInteraction): CommandResponse {

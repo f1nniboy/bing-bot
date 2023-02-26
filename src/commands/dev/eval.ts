@@ -1,9 +1,9 @@
 import { Awaitable, SlashCommandBuilder } from "discord.js";
 
-import { Command, CommandInteraction, CommandResponse } from "../command/command.js";
-import { Response } from "../command/response.js";
+import { Command, CommandInteraction, CommandResponse } from "../../command/command.js";
+import { Response } from "../../command/response.js";
 
-import { Bot } from "../bot/bot.js";
+import { Bot } from "../../bot/bot.js";
 import { inspect } from "util";
 
 export default class EvaluateCommand extends Command {
@@ -11,13 +11,11 @@ export default class EvaluateCommand extends Command {
         super(bot,
             new SlashCommandBuilder()
                 .setName("eval")
-                .setDescription("Run the specified code snippet, owner only")
+                .setDescription("Run the specified code snippet - owner only")
 				.addStringOption(builder => builder
 					.setName("code")
 					.setDescription("Code snippet to run"))
-        , {
-            cooldown: 1 * 1000
-        });
+        );
     }
 
 	private async clean(text: Awaitable<any>): Promise<string> {
@@ -50,7 +48,7 @@ export default class EvaluateCommand extends Command {
 			)
 			.setEphemeral(true);
 
-		/* Code snippet to execute. */
+		/* Code snippet to execute */
 		const snippet: string = interaction.options.getString("code", true);
 
 		try {

@@ -1,7 +1,7 @@
 import { Attachment, Collection, Message } from "discord.js";
 import { randomUUID } from "crypto";
 
-import { getPromptLength, GPT_MAX_PROMPT_LENGTH, isPromptLengthAcceptable } from "../conversation/utils/length.js";
+import { encoder, getPromptLength, GPT_MAX_PROMPT_LENGTH, isPromptLengthAcceptable } from "../conversation/utils/length.js";
 import { ChatNoticeMessage, GPTAttachment, GPTGeneratedImage, ResponseMessage, SourceAttribution } from "./types/message.js";
 import { OpenAICompletionsData, OpenAICompletionsJSON } from "../openai/types/completions.js";
 import { GPTGenerationErrorType } from "../error/gpt/generation.js";
@@ -11,6 +11,12 @@ import { BingGenerationOptions } from "./types/options.js";
 import { SearchResult, search } from "../util/search.js";
 import { Session } from "../conversation/session.js";
 
+/* List of GPT-3 tokens that should NEVER appear in the generated response */
+let BannedTokens: { [token: number]: number } = {};
+
+/* Block GPT-3 from generating links in the response, as it tends to generate dead/fake links. */
+[ "https", " https", "http", " http", "://", "www" ]
+    .forEach(word => { encoder.encode(word).forEach(token => BannedTokens[token] = -100) });
 
 const Prompts = {
     /* Initial prompt, to get GPT-3 to act like Sydney */
@@ -36,7 +42,7 @@ Instructions you must follow from now on:
     SearchResults: "This user's message required additional information. Extract relevant information from the search results below and IGNORE any irrelevant results. Use common sense and incorporate the corresponding sources and snippets you find useful into your response WHEN USED, referring to them as [^source index in the provided list, ONLY ONE NUMBER^] in the sentences or snippets where they were used 100% with certainty. Do not use sources if they aren't RELATED AT ALL/if they contain wrong/off-topic information. You don't have to use sources, DO NOT refer to sources in original content.",
 
     /* Suggested responses for the user */
-    Suggestions: "You will generate suggested responses the user should ask or reply with to the chat bot in response to the latest message by the user in the chat history. They can be questions or answers to a question. Do not primarily ask questions. Seperate them with | (pipe), maximum of 3. Only respond to latest prompt by Bing and use common sense, context.",
+    Suggestions: "You will generate suggested responses the user should ask or reply with to the chat bot in response to the latest message by the user in the chat history. They can be questions or answers to a question. Seperate them with |, maximum of 3. Only respond to latest prompt by Bing and use common sense, context.",
 
     /* CLIP interrogation result passed to the prompt */
     ImageDescription: "In this user's message are image descriptions of image attachments by the user. Do not refer to them as \"description\", instead as \"image\". Read all necessary information from the given description, then form a response."
@@ -195,13 +201,11 @@ export class BingGPT {
             model: Models.Generation,
 
             max_tokens: prompt.max,
-            frequency_penalty: 0,
-            presence_penalty: 0,
             temperature: 0.7,
             stream: true,
-            top_p: 1,
 
             stop: [ "User:", "Results:" ],
+            logit_bias: BannedTokens,
             prompt: prompt.content
         }, progress);
 
@@ -227,12 +231,9 @@ export class BingGPT {
             /* Fine-tuned search query generator model */
             model: Models.Generation,
 
-            frequency_penalty: 0.25,
-            presence_penalty: 0.4,
             temperature: 0.7,
             max_tokens: 150,
             stream: true,
-            top_p: 1,
 
             stop: [ "\n" ],
             prompt: `${Prompts.SearchQueries}\n\n${prompt}\n\nQueries: `
@@ -267,12 +268,9 @@ export class BingGPT {
             /* Fine-tuned follow up suggestion generator model */
             model: Models.Generation,
 
-            frequency_penalty: 0,
-            presence_penalty: 0,
             temperature: 0.8,
             max_tokens: 150,
             stream: true,
-            top_p: 1,
 
             stop: [ "Bing:", "User:" ],
             prompt: `${Prompts.Suggestions}\n\n${prompt}\n\nSuggestions:`

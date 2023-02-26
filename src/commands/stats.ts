@@ -16,10 +16,8 @@ export default class StatsCommand extends Command {
         super(bot,
             new SlashCommandBuilder()
                 .setName("stats")
-                .setDescription("View statistics about the bot"),
-        {
-            cooldown: 5 * 1000
-        });
+                .setDescription("View statistics about the bot")
+		);
     }
 
     public async run(interaction: CommandInteraction): CommandResponse {
