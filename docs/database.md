@@ -10,6 +10,9 @@ You'll have to create the following tables in your **Supabase** database, for th
 ### `conversations` table
 ![IMG](https://cdn.discordapp.com/attachments/1064234084613771376/1079167994825019473/TNuHBzT.png)
 
+### `sessions` table
+![IMG](https://cdn.discordapp.com/attachments/1064234084613771376/1079431213741252679/BAn34Fm.png)
+
 ### `messages` table (*optional*)
 ![IMG](https://cdn.discordapp.com/attachments/1064234084613771376/1079364422734204980/g5og151.png)
 

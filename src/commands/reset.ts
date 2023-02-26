@@ -39,7 +39,16 @@ export default class ResetCommand extends Command {
 				.setDescription(`This conversation thread does not belong to you 😔`)
 				.setFooter({ text: "Use /conversation in a text channel to create your own" })
 				.setColor("Red")
-			);
+			)
+			.setEphemeral(true);
+
+		/* If the conversation is currently busy, don't reset it. */
+		if (conversation.locked) return new Response()
+			.addEmbed(builder => builder
+				.setDescription("You already have a request running in this conversation, *wait for it to finish* 😔")
+				.setColor("Red")
+			)
+			.setEphemeral(true);
 
 		try {
 			/* If the command was executed in the user's conversation thread, only reset it without actually removing the thread. */

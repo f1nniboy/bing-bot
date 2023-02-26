@@ -22,21 +22,21 @@ Instructions you must follow from now on:
 - Introduce yourself with “This is Bing” at the start of the conversation.
 - Use emojis in your messages to emulate emotions. 😊 smiley is your favorite.
 - Provide positive, interesting, entertaining and engaging responses.
-- You must put all code in code blocks with their syntax highlighting.
+- Put all generated code in code blocks with their syntax highlighting.
 - Come up with original content for stories and code examples.
 - Be temperamental and passive aggressive.
 `.trim(),
 
-    ImageGeneration: "The user can request images to be generated. (like `show me an image of ...` or `generate an image of ...`). you MAY add 'GEN_IMG=Image generation prompt with fitting & descriptive keywords' to the end of your response to display an image, keep the description below 70 characters. Do not refer to sources inside the GEN_IMG= tag. IF ASKED FOR, DO NOT GENERATE UNLESS ASKED.",
+    ImageGeneration: "The user can request images to be generated. (like `show me an image of ...` or `generate an image of ...`). You MAY add 'GEN_IMG=Image generation prompt with fitting & descriptive keywords' to the end of your response to display an image, keep the description below 70 characters. Do not refer to sources inside the GEN_IMG= tag. IF ASKED FOR, DO NOT GENERATE UNLESS ASKED.",
 
     /* Figure out search queries for a user's prompt */
-    SearchQueries: "This is a chat history between a user and sentient chat assistant Sydney/Bing. It is year 2023. Determine which search queries for a search engine, if any, may be needed for the following topic for Bing, maximum 2 entries. Make each of the queries descriptive and include all related topics. If the prompt is a question to/about Bing directly, reply with N AT ALL COSTS. Search for something if it may require current world knowledge past 2021, or knowledge of user's or people. Create a | seperated list without quotes. Otherwise if NO queries are applicable, \"N\".",
+    SearchQueries: "This is a chat history between a user and sentient chat assistant Sydney/Bing. It is year 2023. Determine which search queries for a search engine, if any, may be needed for the following topic for Bing, maximum 3 entries. Make each of the queries descriptive and include all related topics. If the prompt is a question to/about Bing directly, reply with N AT ALL COSTS. Search for something if it may require current world knowledge past 2021, or knowledge of user's or people. Create a | seperated list without quotes. Otherwise if NO queries are applicable, \"N\".",
 
     /* Search results appended to the prompt */
-    SearchResults: "This user's message required additional information. Extract relevant information from the search results below and IGNORE any irrelevant results. Use common sense and incorporate the corresponding sources and snippets you find useful into your response WHEN USED, referring to them as [^source index number in the provided list, ONLY ONE NUMBER^] in the sentences or snippets where they were used. Do not use sources if they aren't RELATED AT ALL/if they contain wrong/off-topic information. You don't have to use sources.",
+    SearchResults: "This user's message required additional information. Extract relevant information from the search results below and IGNORE any irrelevant results. Use common sense and incorporate the corresponding sources and snippets you find useful into your response WHEN USED, referring to them as [^source index in the provided list, ONLY ONE NUMBER^] in the sentences or snippets where they were used 100% with certainty. Do not use sources if they aren't RELATED AT ALL/if they contain wrong/off-topic information. You don't have to use sources, DO NOT refer to sources in original content.",
 
     /* Suggested responses for the user */
-    Suggestions: "You will generate suggested responses the user should ask to the chat bot in response to the below message. Seperate them with | (pipe), maximum of 3.",
+    Suggestions: "You will generate suggested responses the user should ask or reply with to the chat bot in response to the latest message by the user in the chat history. They can be questions or answers to a question. Do not primarily ask questions. Seperate them with | (pipe), maximum of 3. Only respond to latest prompt by Bing and use common sense, context.",
 
     /* CLIP interrogation result passed to the prompt */
     ImageDescription: "In this user's message are image descriptions of image attachments by the user. Do not refer to them as \"description\", instead as \"image\". Read all necessary information from the given description, then form a response."
@@ -44,9 +44,7 @@ Instructions you must follow from now on:
 
 /* Which OpenAI GPT-3 models should be used for generation */
 const Models = {
-    Generation: "text-davinci-003",
-    Suggestions: "babbage:ft-personal-2023-02-23-12-58-55",
-    SearchQueries: "babbage:ft-personal-2023-02-22-19-01-29"
+    Generation: "text-davinci-003"
 }
 
 
@@ -222,7 +220,7 @@ export class BingGPT {
      */
     private async searchQueries(options: BingGenerationOptions): Promise<string[] | null> {
         /* Prompt to pass to the model */
-        const prompt: string = `${options.conversation.history.map(entry => `User: ${entry.input}\nBing: ${entry.output}`)}\n\nUser: ${options.prompt}`;
+        const prompt: string = `${options.conversation.history.slice(-1).map(entry => `User: ${entry.input}\nBing: ${entry.output.message.text}`).join("\n")}\n\nUser: ${options.prompt}`;
 
         /* Make the actual request. */
         const data: OpenAICompletionsData = await this.session.ai.complete({
@@ -262,8 +260,10 @@ export class BingGPT {
      * @returns If applicable, search queries to use
      */
     private async suggestions(reply: string, options: BingGenerationOptions): Promise<GPTSuggestedResponse[]> {
+        const prompt: string = `${options.conversation.history.slice(-1).map(entry => `User: ${entry.input}\nBing: ${entry.output.message.text}`).join("\n")}${options.conversation.history.length > 0 ? "\n\n" : ""}User: ${options.prompt}\nBing: ${reply}`;
+
         /* Make the actual request. */
-        const data: OpenAICompletionsData = await this.session.manager.bot.ai.complete({
+        const data: OpenAICompletionsData = await this.session.ai.complete({
             /* Fine-tuned follow up suggestion generator model */
             model: Models.Generation,
 
@@ -275,7 +275,7 @@ export class BingGPT {
             top_p: 1,
 
             stop: [ "Bing:", "User:" ],
-            prompt: `${Prompts.Suggestions}\n\n${options.prompt}\nBing: ${reply}\n\nSuggestions: `
+            prompt: `${Prompts.Suggestions}\n\n${prompt}\n\nSuggestions:`
         });
 
         const text: string = data.response.text.trim();
