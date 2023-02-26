@@ -245,6 +245,14 @@ export class Generator {
 			);
 		}
 
+		/* If the generated message finished due to reaching the token limit, show a notice. */
+		if (!pending && data.raw && (data.raw.finish_reason === "length" || data.raw.finish_reason === "max_tokens")) {
+			embeds.push(new EmbedBuilder()
+				.setDescription(`*The message reached the length limit, and was not fully generated.*`)
+				.setColor("Yellow")
+			);
+		}
+
 		/* If the received data is a chat notice request, simply add the notice to the formatted message. */
 		if (data.type === "ChatNotice") {
 			embeds.push(new EmbedBuilder()

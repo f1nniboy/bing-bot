@@ -1,3 +1,5 @@
+import { OpenAICompletionResponse, OpenAICompletionsJSON } from "../../openai/types/completions.js";
+
 export interface SourceAttribution {
 	description: string;
 	query: string;
@@ -34,6 +36,7 @@ export type ResponseMessage = BaseMessage & {
 	images: GPTGeneratedImage[];
 	queries: string[] | null;
 	id: string;
+	raw: OpenAICompletionResponse | null;
 }
 
 export type ChatNoticeMessage = ResponseMessage & {

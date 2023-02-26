@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 
 import { encoder, getPromptLength, GPT_MAX_PROMPT_LENGTH, isPromptLengthAcceptable } from "../conversation/utils/length.js";
 import { ChatNoticeMessage, GPTAttachment, GPTGeneratedImage, ResponseMessage, SourceAttribution } from "./types/message.js";
-import { OpenAICompletionsData, OpenAICompletionsJSON } from "../openai/types/completions.js";
+import { OpenAICompletionResponse, OpenAICompletionsData, OpenAICompletionsJSON } from "../openai/types/completions.js";
 import { GPTGenerationErrorType } from "../error/gpt/generation.js";
 import { GPTGenerationError } from "../error/gpt/generation.js";
 import { Conversation } from "../conversation/conversation.js";
@@ -192,7 +192,7 @@ export class BingGPT {
      * @param options Generation options
      * @returns Returned BingGPT response
      */
-    private async complete(options: BingGenerationOptions & GPTCompleteOptions, progress?: (response: OpenAICompletionsJSON) => Promise<void> | void): Promise<string | null> {
+    private async complete(options: BingGenerationOptions & GPTCompleteOptions, progress?: (response: OpenAICompletionsJSON) => Promise<void> | void): Promise<OpenAICompletionsData | null> {
         /* Construct the formatted ChatGPT prompt. */
         const prompt: PromptData = this.prompt(options, this.session.manager.get(options.conversation.user)!);
 
@@ -209,11 +209,16 @@ export class BingGPT {
             prompt: prompt.content
         }, progress);
 
-        /* Generated message content */
-        const content: string = data.response.text.trim();
-        if (content.length === 0) return null;
+        /* If the generated response is empty, return nothing. */
+        if (data.response.text.trim().length === 0) return null;
 
-        return content;
+        return {
+            ...data,
+            response: {
+                finish_reason: data.response.finish_reason,
+                text: data.response.text.trim()
+            }
+        };
     }
 
     /**
@@ -368,6 +373,7 @@ export class BingGPT {
                     attachments: [],
                     queries: null,
                     images: [],
+                    raw: null,
                     text: `Looking at image **\`${attachment.name}\`**`
                 });
 
@@ -391,6 +397,7 @@ export class BingGPT {
                 attachments: [],
                 queries: null,
                 images: [],
+                raw: null,
                 text: `Searching for **\`${query}\`**`
             });
 
@@ -420,20 +427,24 @@ export class BingGPT {
                 attachments: attachments,
                 queries: null,
                 images: [],
+                raw: response.choices[0],
                 text: response.choices[0].text
             });
         };
 
         /* Generate the first response by BingGPT. */
-        let response: string | null = await this.complete({
+        const data: OpenAICompletionsData | null = await this.complete({
             progress, conversation, prompt, trigger, images: attachments,
             results: sources.length > 0 ? sources : null
         }, onGenerationProgress);
 
         /* If the response sent by ChatGPT is empty, throw a generation error. */
-        if (response === null) throw new GPTGenerationError({
+        if (data === null) throw new GPTGenerationError({
             type: GPTGenerationErrorType.Empty
         });
+
+        /* Generated response content */
+        let response: string = data.response.text;
 
         /* Try to extract the original response and the actual image generation prompt from the generated response. */
         const [ original, generationPrompt ] = response.split("GEN_IMG=");
@@ -451,6 +462,7 @@ export class BingGPT {
                 attachments: attachments,
                 queries: null,
                 images: [],
+                raw: null,
                 notice: "*Generating the image*",
                 text: response
             } as ChatNoticeMessage);
@@ -468,6 +480,7 @@ export class BingGPT {
             type: "Chat",
             queries: searchQueries,
             sources: sources.length > 0 ? sources : null,
+            raw: data.response,
 
             suggestions: suggestions.map(suggestion => ({
                 type: "Suggestion",

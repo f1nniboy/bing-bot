@@ -48,20 +48,12 @@ export interface OpenAIUsageCompletionsData {
     total_tokens: number;
 }
 
-export interface OpenAIFinishCompletionsData {
-    /* Why the generation was stopped */
-    type: "stop" | "length" | "max_tokens";
-
-    /** Which stop sequence caused the halt */
-    stop: string | null;
-}
-
 export interface OpenAICompletionResponse {
     /** Generated text */
     text: string;
 
     /** Reason for halting the generation */
-    finish_details: OpenAIFinishCompletionsData;
+    finish_reason: "stop" | "length" | "max_tokens";
 }
 
 export interface OpenAICompletionsData {

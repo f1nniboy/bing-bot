@@ -107,7 +107,7 @@ export class OpenAIManager {
                             choices: [
                                 {
                                     text: latest !== null ? `${latest.choices[0].text}${data.choices[0].text}` : data.choices[0].text,
-                                    finish_details: data.choices[0].finish_details
+                                    finish_reason: data.choices[0].finish_reason
                                 }
                             ]
                         };

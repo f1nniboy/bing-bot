@@ -151,6 +151,7 @@ export class Conversation extends EventEmitter {
 							sources: [],
 							suggestions: [],
 							text: entry.output,
+							raw: null,
 							type: "Chat"
 						}
 					},
@@ -359,6 +360,7 @@ export class Conversation extends EventEmitter {
 						sources: [],
 						suggestions: [],
 						queries: null,
+						raw: null,
 						type: "Notice",
 						text: `Something went wrong while processing your message, retrying`
 					});
