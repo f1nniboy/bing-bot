@@ -112,7 +112,7 @@ export class Conversation extends EventEmitter {
 			.from("conversations")
 			.select("*")
 			
-			.eq("id", this.id)
+			.eq("id", this.user.id)
 			.single();
 
 		return data;
@@ -134,6 +134,33 @@ export class Conversation extends EventEmitter {
 		/* Change the last update time accordingly & start the inactivity timer. */
 		this.updatedAt = data.updatedAt !== null ? Date.parse(data.updatedAt) : Date.now();
 		this.applyResetTimer(this.updatedAt);
+
+		/* If the saved conversation has any message history, try to load it. */
+		if (data.history !== null) {
+			for (const entry of data.history) {
+				this.history.push({
+					input: entry.input,
+
+					output: {
+						id: "",
+						message: {
+							attachments: [],
+							id: "",
+							images: [],
+							queries: [],
+							sources: [],
+							suggestions: [],
+							text: entry.output,
+							type: "Chat"
+						}
+					},
+
+					reply: null,
+					time: Date.now(),
+					trigger: null!
+				});
+			}
+		}
 	}
 
 	/**
@@ -161,7 +188,7 @@ export class Conversation extends EventEmitter {
 				channel: this.thread!.id,
 				guild: this.thread!.guildId,
 
-				history: {}
+				history: null
             }, {
 				onConflict: "id"
 			});
@@ -369,13 +396,19 @@ export class Conversation extends EventEmitter {
 		const cachedCount = await this.count();
 
 		/* Also update the last-updated time and message count in the database for this conversation. */
-		this.manager.bot.db.client
+		await this.manager.bot.db.client
 			.from("conversations")
 			.update({
 				updatedAt: new Date().toISOString(),
-				count: cachedCount !== -1 ? cachedCount + 1 : undefined 
+				count: cachedCount !== -1 ? cachedCount + 1 : undefined,
+
+				/* Save a stripped-down version of the chat history in the database. */
+				history: this.history.map(entry => ({
+					input: entry.input,
+					output: entry.output.message.text
+				}))
 			})
-			.eq("id", this.id);
+			.eq("id", this.user.id);
 
 		/* If messages should be collected in the database, insert the generated message. */
 		if (this.manager.bot.app.config.collectMessages) await this.manager.bot.db.client

@@ -1,5 +1,4 @@
-import { GPTSuggestedResponse } from "../../gpt/gpt.js";
-import { SourceAttribution } from "../../gpt/types/message.js";
+import { SourceAttribution, SerializedMessage } from "../../gpt/types/message.js";
 
 export type Json =
   | string
@@ -19,7 +18,7 @@ export interface Database {
           count: number
           createdAt: string
           guild: string | null
-          history: Json | null
+          history: SerializedMessage[] | null
           id: string
           updatedAt: string | null
         }
@@ -29,7 +28,7 @@ export interface Database {
           count?: number
           createdAt?: string
           guild?: string | null
-          history?: Json | null
+          history?: SerializedMessage[] | null
           id: string
           updatedAt?: string | null
         }
@@ -39,7 +38,7 @@ export interface Database {
           count?: number
           createdAt?: string
           guild?: string | null
-          history?: Json | null
+          history?: SerializedMessage[] | null
           id?: string
           updatedAt?: string | null
         }

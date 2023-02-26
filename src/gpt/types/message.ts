@@ -41,4 +41,9 @@ export type ChatNoticeMessage = ResponseMessage & {
 	notice: string;
 }
 
+export interface SerializedMessage {
+	input: string;
+	output: string;
+}
+
 export default UserMessage;
