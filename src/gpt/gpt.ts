@@ -1,8 +1,8 @@
-import { Attachment, Message } from "discord.js";
+import { Attachment, Collection, Message } from "discord.js";
 import { randomUUID } from "crypto";
 
 import { getPromptLength, GPT_MAX_PROMPT_LENGTH, isPromptLengthAcceptable } from "../conversation/utils/length.js";
-import { ChatNoticeMessage, GPTAttachment, GPTGeneratedImage, ResponseMessage } from "./types/message.js";
+import { ChatNoticeMessage, GPTAttachment, GPTGeneratedImage, ResponseMessage, SourceAttribution } from "./types/message.js";
 import { OpenAICompletionsData, OpenAICompletionsJSON } from "../openai/types/completions.js";
 import { GPTGenerationErrorType } from "../error/gpt/generation.js";
 import { GPTGenerationError } from "../error/gpt/generation.js";
@@ -34,12 +34,9 @@ Instructions you must follow from now on:
 
     /* Search results appended to the prompt */
     SearchResults: "This user's message required additional information. Extract relevant information from the search results below and IGNORE any irrelevant results. Use common sense and incorporate the corresponding sources and snippets you find useful into your response WHEN USED, referring to them as [^source index number in the provided list, ONLY ONE NUMBER^] in the sentences or snippets where they were used. Do not use sources if they aren't RELATED AT ALL/if they contain wrong/off-topic information. You don't have to use sources.",
-/*`
-As the user's message required additional information, you are provided with search results from a search engine.
-You may incorporate the sources in your response for additional information. The sources may contain wrong/off-topic information, so DO NOT use them forcefully.
-Refer to the sources like this [^<index>^] in sentences where they were used for information. You do not have to refer to all sources...
-Determine with the queries whether it makes sense to incorporate the sources into the response, if not DO NOT USE THEM.
-`.trim(),*/
+
+    /* Suggested responses for the user */
+    Suggestions: "You will generate suggested responses the user should ask to the chat bot in response to the below message. Seperate them with | (pipe), maximum of 3.",
 
     /* CLIP interrogation result passed to the prompt */
     ImageDescription: "In this user's message are image descriptions of image attachments by the user. Do not refer to them as \"description\", instead as \"image\". Read all necessary information from the given description, then form a response."
@@ -57,14 +54,9 @@ export interface GPTSuggestedResponse {
     text: string;
 }
 
-type GPTSearchResult = SearchResult & {
-    /* Which query was used to get this result */
-    query: string;
-}
-
 interface GPTCompleteOptions {
     /* Search engine results */
-    results: GPTSearchResult[] | null;
+    results: SourceAttribution[] | null;
 
     /* Discord attachments, to use for CLIP interrogator */
     images: GPTAttachment[];
@@ -109,7 +101,7 @@ export class BingGPT {
 		return `${String(today.getUTCHours()).padStart(2, "0")}:${String(today.getMinutes()).padStart(2, "0")} UTC`;
 	}
 
-    private formatSearchResults(results: GPTSearchResult[]): string {
+    private formatSearchResults(results: SourceAttribution[]): string {
         return `${results
             .map((result, index) => `${index + 1} -> ${result.title}: ${result.description}`)
             .join("\n")}\n\nQueries used: ${results.map(result => result.query).join(" | ")}`;
@@ -273,7 +265,7 @@ export class BingGPT {
         /* Make the actual request. */
         const data: OpenAICompletionsData = await this.session.manager.bot.ai.complete({
             /* Fine-tuned follow up suggestion generator model */
-            model: Models.Suggestions,
+            model: Models.Generation,
 
             frequency_penalty: 0,
             presence_penalty: 0,
@@ -282,8 +274,8 @@ export class BingGPT {
             stream: true,
             top_p: 1,
 
-            stop: [ "\n", "Bing:", "User:" ],
-            prompt: `${options.prompt}\nBing: ${reply}\n\nSuggestions: `
+            stop: [ "Bing:", "User:" ],
+            prompt: `${Prompts.Suggestions}\n\n${options.prompt}\nBing: ${reply}\n\nSuggestions: `
         });
 
         const text: string = data.response.text.trim();
@@ -376,6 +368,7 @@ export class BingGPT {
                     sources: [],
                     suggestions: [],
                     attachments: [],
+                    queries: null,
                     images: [],
                     text: `Looking at image **\`${attachment.name}\`**`
                 });
@@ -388,7 +381,7 @@ export class BingGPT {
         
         /* Get possible search results for the user's query. */
         const searchQueries: string[] | null = messageAttachments.length === 0 ? await this.searchQueries({ progress, conversation, prompt, trigger }) : null;
-        const sources: GPTSearchResult[] = [];
+        const sourceCollection: Collection<string, SourceAttribution> = new Collection();
 
         /* Search up the search queries on DuckDuckGo. */
         if (searchQueries !== null) for (const query of searchQueries) {
@@ -398,6 +391,7 @@ export class BingGPT {
                 sources: [],
                 suggestions: [],
                 attachments: [],
+                queries: null,
                 images: [],
                 text: `Searching for **\`${query}\`**`
             });
@@ -409,12 +403,14 @@ export class BingGPT {
             });
 
             for (const result of searchResults) {
-                sources.push({
+                sourceCollection.set(result.title, {
                     ...result,
                     query
                 });
             }
         }
+
+        const sources: SourceAttribution[] = Array.from(sourceCollection.values());
 
         /* On-progress handler, to generate the message on the fly. */
         const onGenerationProgress = (response: OpenAICompletionsJSON) => {
@@ -424,6 +420,7 @@ export class BingGPT {
                 sources: sources,
                 suggestions: [],
                 attachments: attachments,
+                queries: null,
                 images: [],
                 text: response.choices[0].text
             });
@@ -454,6 +451,7 @@ export class BingGPT {
                 sources: sources,
                 suggestions: [],
                 attachments: attachments,
+                queries: null,
                 images: [],
                 notice: "*Generating the image*",
                 text: response
@@ -470,7 +468,8 @@ export class BingGPT {
         return {
             id: id,
             type: "Chat",
-            sources,
+            queries: searchQueries,
+            sources: sources.length > 0 ? sources : null,
 
             suggestions: suggestions.map(suggestion => ({
                 type: "Suggestion",

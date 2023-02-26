@@ -1,4 +1,6 @@
 export interface SourceAttribution {
+	description: string;
+	query: string;
 	title: string;
 	url: string;
 }
@@ -30,6 +32,7 @@ export type ResponseMessage = BaseMessage & {
 	suggestions: SuggestedResponse[];
 	attachments: GPTAttachment[];
 	images: GPTGeneratedImage[];
+	queries: string[] | null;
 	id: string;
 }
 

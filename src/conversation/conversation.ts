@@ -1,4 +1,5 @@
 import { EmbedBuilder, Message, ThreadChannel, User } from "discord.js";
+import { randomUUID } from "crypto";
 import EventEmitter from "events";
 import chalk from "chalk";
 
@@ -8,6 +9,7 @@ import { ConversationManager } from "./manager.js";
 import { ChatResponse } from "./types/response.js";
 import { GPTAPIError } from "../error/gpt/api.js";
 import { Cooldown } from "./utils/cooldown.js";
+
 
 interface ConversationInitOptions {
 	thread?: ThreadChannel;
@@ -74,6 +76,9 @@ export class Conversation extends EventEmitter {
 	/* Timer, to reset the conversation after a specific time of inactivity */
 	public timer: NodeJS.Timeout | null;
 
+	/* Unique identifier of the conversation */
+	public id: string;
+
 	/* Cool-down manager */
 	public cooldown: Cooldown;
 
@@ -95,6 +100,7 @@ export class Conversation extends EventEmitter {
 		this.history = [];
 
 		/* Set up some default values. */
+		this.id = randomUUID();
 		this.updatedAt = null;
 		this.active = false;
 		this.locked = false;
@@ -139,6 +145,9 @@ export class Conversation extends EventEmitter {
 	public async init({ thread }: ConversationInitOptions = {}): Promise<void> {
 		/* If a new thread was provided, update it. */
 		if (thread) this.thread = thread;
+
+		/* Set another random conversation ID. */
+		this.id = randomUUID();
 
         /* Update the conversation entry in the database. */
         await this.manager.bot.db.client
@@ -252,6 +261,9 @@ export class Conversation extends EventEmitter {
 		/* Amount of attempted tries */
 		let tries: number = 0;
 
+		/* When the generation request was started */
+		const before: Date = new Date();
+
 		/* ChatGPT response */
 		let data: ChatResponse | null = null;
 
@@ -319,6 +331,7 @@ export class Conversation extends EventEmitter {
 						images: [],
 						sources: [],
 						suggestions: [],
+						queries: null,
 						type: "Notice",
 						text: `Something went wrong while processing your message, retrying`
 					});
@@ -364,6 +377,24 @@ export class Conversation extends EventEmitter {
 			})
 			.eq("id", this.id);
 
+		/* If messages should be collected in the database, insert the generated message. */
+		if (this.manager.bot.app.config.collectMessages) await this.manager.bot.db.client
+			.from("messages")
+			.insert({
+				createdAt: new Date().toISOString(),
+				requestedAt: before.toISOString(),
+
+				id: output.output.id,
+				conversation: this.id,
+
+				input: output.input,
+				output: output.output.message.text,
+
+				suggestions: output.output.message.suggestions.map(suggestion => suggestion.text),
+				sources: output.output.message.sources,
+				queries: output.output.message.queries
+			});
+
 		/* Activate the cool-down. */
 		this.cooldown.use();
 
@@ -386,10 +417,5 @@ export class Conversation extends EventEmitter {
 	public async count(): Promise<number> {
 		const data = await this.cachedConversation();
 		return data !== null ? data.count : -1;
-	}
-
-	/* ID of the conversation */
-	public get id(): string {
-		return this.user.id;
 	}
 }

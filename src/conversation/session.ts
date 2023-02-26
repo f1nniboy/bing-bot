@@ -275,7 +275,7 @@ export class Session {
             this.debug.count++;
 
             return {
-                id: data.text,
+                id: data.id,
                 message: data
             };
 

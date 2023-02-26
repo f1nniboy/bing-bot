@@ -1,3 +1,6 @@
+import { GPTSuggestedResponse } from "../../gpt/gpt.js";
+import { SourceAttribution } from "../../gpt/types/message.js";
+
 export type Json =
   | string
   | number
@@ -56,6 +59,41 @@ export interface Database {
           createdAt?: string
           id?: string
           name?: string
+        }
+      }
+      messages: {
+        Row: {
+          createdAt: string
+          id: string
+          input: string
+          output: string
+          queries: string[] | null
+          requestedAt: string
+          sources: SourceAttribution[] | null
+          suggestions: string[]
+          conversation: string
+        }
+        Insert: {
+          createdAt: string
+          id: string
+          input: string
+          output: string
+          queries?: string[] | null
+          requestedAt: string
+          sources?: SourceAttribution[] | null
+          suggestions: string[]
+          conversation: string
+        }
+        Update: {
+          createdAt?: string
+          id?: string
+          input?: string
+          output?: string
+          queries?: string[] | null
+          requestedAt?: string
+          sources?: SourceAttribution[] | null
+          suggestions?: string[],
+          conversation?: string
         }
       }
     }

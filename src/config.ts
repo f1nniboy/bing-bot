@@ -23,6 +23,9 @@ export interface Config {
 	/* How many shards to allocate for the bot */
 	shards: number | string | "auto";
 
+	/* Whether messages should be collected in the database */
+	collectMessages: boolean;
+
 	/* Various credentials for the bot */
 	credentials: ChatCredentials[];
 

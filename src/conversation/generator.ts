@@ -1,11 +1,11 @@
 import { ActionRowBuilder, AttachmentBuilder, AttachmentPayload, ButtonBuilder, ButtonInteraction, ButtonStyle, channelLink, ChannelType, DMChannel, EmbedBuilder, Guild, GuildMember, JSONEncodable, Message, MessageCreateOptions, MessageEditOptions, PermissionFlagsBits, Snowflake, ThreadAutoArchiveDuration, ThreadChannel, User } from "discord.js";
 import { randomUUID } from "crypto";
 
+import { ChatNoticeMessage, ResponseMessage, SourceAttribution } from "../gpt/types/message.js";
 import { ChatGeneratedInteraction, Conversation } from "./conversation.js";
 import { check as moderate, ModerationResult } from "./moderation.js";
 import { Response, ResponseType } from "../command/response.js";
 import { CommandInteraction } from "../command/command.js";
-import { ChatNoticeMessage, ResponseMessage, SourceAttribution } from "../gpt/types/message.js";
 import { toUpperNumbers } from "../util/formatting.js";
 import { removeReaction } from "./utils/reaction.js";
 import { ownerOfThread } from "./utils/owner.js";

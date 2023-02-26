@@ -5,6 +5,9 @@
     },
 
     "shards": "auto",
+    
+    "collectMessagesNotice": "Set this to true, if you want to save all user messages to the Supabase database, see `docs/messages.md` for more information.",
+    "collectMessages": false,
 
     "credentials": [
 		{
