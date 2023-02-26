@@ -10,5 +10,8 @@ You'll have to create the following tables in your **Supabase** database, for th
 ### `conversations` table
 ![IMG](https://cdn.discordapp.com/attachments/1064234084613771376/1079167994825019473/TNuHBzT.png)
 
+### `messages` table (*optional*)
+![IMG](https://cdn.discordapp.com/attachments/1064234084613771376/1079364422734204980/g5og151.png)
+
 ## Modifying the configuration
 When you're done with creating the tables, copy the **Project URL** and **`anon` Project API key** from your database settings and add them to the configuration.
