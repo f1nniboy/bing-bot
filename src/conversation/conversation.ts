@@ -22,7 +22,7 @@ export interface ChatInteraction {
 	/* Discord message, which triggered the generation */
 	trigger: Message;
 
-	/* Generated ChatGPT output */
+	/* Generated output */
 	output: ChatResponse;
 
 	/* Reply to the trigger on Discord */
@@ -58,7 +58,7 @@ export class Conversation extends EventEmitter {
 	/* Discord thread, that this conversation is bound to */
 	public thread: ThreadChannel | null;
 
-	/* ChatGPT client */
+	/* Session, in charge of generating responses to prompts */
 	public session: Session;
 
 	/* Whether the conversation is active & ready */
@@ -67,7 +67,7 @@ export class Conversation extends EventEmitter {
 	/* Whether the client is locked, because it is initializing or shutting down */
 	public locked: boolean;
 
-	/* History of ChatGPT prompts & responses */
+	/* History of prompts & responses */
 	public history: ChatInteraction[];
 
 	/* Last interaction with this conversation */
@@ -93,7 +93,7 @@ export class Conversation extends EventEmitter {
 		this.thread = null;
 		this.user = user;
 
-		/* Set up the ChatGPT session. */
+		/* Set up the session. */
 		this.session = session;
 
 		/* Set up the conversation data. */
@@ -165,7 +165,7 @@ export class Conversation extends EventEmitter {
 	}
 
 	/**
-	 * Initialize the ChatGPT conversation.
+	 * Initialize the conversation.
 	 * This also gets called after each "reset", in order to maintain the creation time & future data.
 	 * 
 	 * @param thread New thread to use for the conversation
@@ -271,7 +271,7 @@ export class Conversation extends EventEmitter {
 	}
 
 	/**
-	 * Call the OpenAI ChatGPT API and generate a response for the given prompt.
+	 * Call the OpenAI GPT-3 API and generate a response for the given prompt.
 	 * @param options Generation options
 	 * 
 	 * @returns Given chat response
@@ -292,14 +292,14 @@ export class Conversation extends EventEmitter {
 		/* When the generation request was started */
 		const before: Date = new Date();
 
-		/* ChatGPT response */
+		/* GPT-3 response */
 		let data: ChatResponse | null = null;
 
 		/**
-		 * This loop tries to generate a ChatGPT response N times, until a response gets generated or the retries are exhausted.
+		 * This loop tries to generate a GPT-3 response N times, until a response gets generated or the retries are exhausted.
 		 */
 		do {
-			/* Try to generate the ChatGPT response. */
+			/* Try to generate the GPT-3 response. */
 			try {
 				data = await this.session.generate(options);
 

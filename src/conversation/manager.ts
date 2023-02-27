@@ -6,11 +6,11 @@ import { Generator } from "./generator.js";
 import { Session } from "./session.js";
 import { Bot } from "../bot/bot.js";
 
-/* Manager in charge of managing all ChatGPT conversations */
+/* Manager in charge of managing all conversations */
 export class ConversationManager {
     public readonly bot: Bot;
 
-    /* List of available ChatGPT sessions */
+    /* List of available sessions */
     public readonly sessions: Collection<string, Session>;
 
     /* List of currently running conversations */
@@ -35,12 +35,12 @@ export class ConversationManager {
     }
 
     /**
-     * Set up the ChatGPT sessions.
-     * @returns How many ChatGPT sessions were initialized
+     * Set up the sessions.
+     * @returns How many sessions were initialized
      */
     public async setup(): Promise<number> {
         await Promise.all(this.bot.app.config.credentials.filter(data => data.type === "openai").map(async credentials => {
-            /* Create a new ChatGPT session. */
+            /* Create a new session. */
             const session: Session = new Session(this, credentials);
             this.sessions.set(session.id, session);
 
@@ -53,7 +53,7 @@ export class ConversationManager {
     }
 
     /**
-     * Shut down all of the ChatGPT sessions.
+     * Shut down all of the sessions.
      */
     public async stop(): Promise<void> {
         const sessions: Session[] = Array.from(this.sessions.values());
@@ -73,7 +73,7 @@ export class ConversationManager {
      * Create a new conversation for the specified Discord user, bound to the specified thread.
      * @param user Discord user to create a session for
      * 
-     * @returns Newly-created ChatGPT session 
+     * @returns Newly-created session 
      */
     public async create(user: User): Promise<Conversation> {
         /* If the user already has a conversation, return it instead. */
@@ -105,13 +105,13 @@ export class ConversationManager {
     }
 
     /**
-     * Get a free & low-loaded ChatGPT session to use.
-     * @param sessions Pre-generated list of free ChatGPT sessions, to improve performance
+     * Get a free & low-loaded session to use.
+     * @param sessions Pre-generated list of free sessions, to improve performance
      * 
-     * @returns The ChatGPT session
+     * @returns The session
      */
     public async session(sessions?: Session[]): Promise<Session> {
-        /* List of available ChatGPT sessions */
+        /* List of available sessions */
         let list: Session[] = sessions ?? await this.freeSessions();
 
         /* If all of the sessions are busy, throw an exception. */
@@ -132,14 +132,14 @@ export class ConversationManager {
 
 
     /**
-     * Get a list of non-rate-limited and low-load ChatGPT sessions.
-     * @returns The sorted ChatGPT sessions
+     * Get a list of non-rate-limited and low-load sessions.
+     * @returns The sorted sessions
      */
     public async freeSessions(): Promise<Session[]> {
-        /* List of available ChatGPT sessions */
+        /* List of available sessions */
         let list: Session[] = Array.from(this.sessions.values());
 
-        /* Sort the list of available ChatGPT sessions by amount of active conversations. */
+        /* Sort the list of available sessions by amount of active conversations. */
         list = list.sort((a, b) => {
             const countA: number = this.conversations.filter(conversation => conversation.session.id === a.id).size;
             const countB: number = this.conversations.filter(conversation => conversation.session.id === b.id).size;

@@ -46,7 +46,7 @@ interface SessionDebugData {
     duration: number;
 }
 
-/* Message generation options for ChatGPT */
+/* Message generation options */
 export interface GenerationOptions {
     /* Conversation to use */
     conversation: Conversation;
@@ -88,7 +88,7 @@ export class Session {
     /* Whether the client is locked, because it is initializing or shutting down */
     public locked: boolean;
 
-    /* Whether the client is currently generating a ChatGPT response */
+    /* Whether the client is currently generating a response */
     public generating: boolean;
 
     /* Various debug data about this session */
@@ -141,9 +141,7 @@ export class Session {
     }
 
     /**
-     * Set up the ChatGPT client and log in using the
-     * given credentials in the configuration.
-     * 
+     * Set up the session and log in using the given credentials in the configuration.
      * @throws An exception, if the initialization failed
      */
     public async init(): Promise<void> {

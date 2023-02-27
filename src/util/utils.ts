@@ -58,7 +58,7 @@ export abstract class Utils {
 		return (arr[(v - 20) % 10] || arr[v] || arr[0]) as any;
 	}
 
-	/* Clean up the content of a ChatGPT bot invocation message. */
+	/* Clean up the content of a bot invocation message. */
 	public static cleanContent(bot: Bot, content: string): string {
 		return content
 			/* Replace the bot mention in general, if it doesn't have a nickname or was

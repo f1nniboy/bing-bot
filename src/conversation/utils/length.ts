@@ -15,7 +15,7 @@ export const getPromptLength = (content: string): number => {
 }
 
 /**
- * Whether the length of a prompt is usable for ChatGPT.
+ * Whether the length of a prompt is "usable".
  * @param content Prompt to check
  * 
  * @returns Whether the prompt is usable

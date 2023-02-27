@@ -1,4 +1,4 @@
-/* Type of the ChatGPT exception */
+/* Type of the GPT exception */
 export enum GPTErrorType {
     /**
      * An error occured during the generation of a response, which might be because

@@ -88,8 +88,8 @@ export class BingGPT {
     }
 
     /**
-     * Get the current date, formatted for ChatGPT.
-     * @returns Current date, formatted for ChatGPT
+     * Get the current date, formatted for GPT-3.
+     * @returns Current date, formatted for GPT-3
      */
 	private today(): string {
 		const today = new Date();
@@ -102,8 +102,8 @@ export class BingGPT {
 	}
 
     /**
-     * Get the current time, formatted for ChatGPT.
-     * @returns Current time, formatted for ChatGPT
+     * Get the current time, formatted for GPT-3.
+     * @returns Current time, formatted for GPT-3
      */
 	private time(): string {
 		const today = new Date();
@@ -117,10 +117,10 @@ export class BingGPT {
     }
 
     /**
-     * Construct the prompt to pass to ChatGPT.
+     * Construct the prompt to pass to GPT-3.
      * @param options Generation options
      * 
-     * @returns Constructed & formatted ChatGPT prompt
+     * @returns Constructed & formatted GPT-3 prompt
      */
     private prompt(options: BingGenerationOptions & GPTCompleteOptions, conversation: Conversation): PromptData {
         /* Prompt to pass to the API request */
@@ -198,7 +198,7 @@ export class BingGPT {
      * @returns Returned BingGPT response
      */
     private async complete(options: BingGenerationOptions & GPTCompleteOptions, progress?: (response: OpenAICompletionsJSON) => Promise<void> | void): Promise<OpenAICompletionsData | null> {
-        /* Construct the formatted ChatGPT prompt. */
+        /* Construct the formatted GPT-3 prompt. */
         const prompt: PromptData = this.prompt(options, this.session.manager.get(options.conversation.user)!);
 
         /* Make the actual request. */
@@ -443,7 +443,7 @@ export class BingGPT {
             results: sources.length > 0 ? sources : null
         }, onGenerationProgress);
 
-        /* If the response sent by ChatGPT is empty, throw a generation error. */
+        /* If the response is empty, throw a generation error. */
         if (data === null) throw new GPTGenerationError({
             type: GPTGenerationErrorType.Empty
         });
