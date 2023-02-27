@@ -1,3 +1,4 @@
+/* List of upper numbers */
 const MAP: string = "⁰¹²³⁴⁵⁶⁷⁸⁹";
 
 /**

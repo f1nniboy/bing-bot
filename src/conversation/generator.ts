@@ -8,6 +8,7 @@ import { Response, ResponseType } from "../command/response.js";
 import { CommandInteraction } from "../command/command.js";
 import { toUpperNumbers } from "../util/formatting.js";
 import { removeReaction } from "./utils/reaction.js";
+import { format } from "../gpt/utils/formatter.js";
 import { ownerOfThread } from "./utils/owner.js";
 import { GPTError } from "../error/gpt/base.js";
 import { randomEmoji } from "../util/emoji.js";
@@ -18,7 +19,6 @@ import { Bot } from "../bot/bot.js";
 import { GPTGenerationError, GPTGenerationErrorType } from "../error/gpt/generation.js";
 import { handleError } from "../util/moderation/error.js";
 import { GPTAPIError } from "../error/gpt/api.js";
-
 
 const BOT_REQUIRED_PERMISSIONS = {
 	"Create Public Threads": PermissionFlagsBits.CreatePublicThreads,
@@ -220,8 +220,8 @@ export class Generator {
 		/* Embeds to display in the message */
 		const embeds: EmbedBuilder[] = [];
 
-		let content: string = data.text;
-		if (!content) return null;
+		/* Formatted generated response */
+		let content: string = format(data.text).trim();
 
 		/* Add a formatted sources embed for all given sources. */
 		if (data.sources && data.sources.length > 0) {
@@ -289,12 +289,6 @@ export class Generator {
 
 			response.addComponent(ActionRowBuilder<ButtonBuilder>, row)
 		}
-
-		content = content.trim();
-
-		/* If the pending message has trailing Markdown formatting, fix it automatically. */
-		if (content.split("```").length % 2 === 0) content = `${content}\n\`\`\``;
-		if (content.split("**").length % 2 === 0) content = `${content}**`;
 
 		const formatted: string = `${content} **...** ⌛`;
 

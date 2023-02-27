@@ -1,9 +1,9 @@
 import { Attachment, Collection, Message } from "discord.js";
 import { randomUUID } from "crypto";
 
-import { encoder, getPromptLength, GPT_MAX_PROMPT_LENGTH, isPromptLengthAcceptable } from "../conversation/utils/length.js";
 import { ChatNoticeMessage, GPTAttachment, GPTGeneratedImage, ResponseMessage, SourceAttribution } from "./types/message.js";
-import { OpenAICompletionResponse, OpenAICompletionsData, OpenAICompletionsJSON } from "../openai/types/completions.js";
+import { getPromptLength, GPT_MAX_PROMPT_LENGTH, isPromptLengthAcceptable } from "../conversation/utils/length.js";
+import { OpenAICompletionsData, OpenAICompletionsJSON } from "../openai/types/completions.js";
 import { GPTGenerationErrorType } from "../error/gpt/generation.js";
 import { GPTGenerationError } from "../error/gpt/generation.js";
 import { Conversation } from "../conversation/conversation.js";
@@ -15,8 +15,11 @@ import { Session } from "../conversation/session.js";
 let BannedTokens: { [token: number]: number } = {};
 
 /* Block GPT-3 from generating links in the response, as it tends to generate dead/fake links. */
-[ "https", " https", "http", " http", "://", "www" ]
-    .forEach(word => { encoder.encode(word).forEach(token => BannedTokens[token] = -100) });
+
+/* Enable this if you want to basically remove all links from GPT-3's output.
+   I disabled it by default now, because it also removes API URLs from generated code. */
+/*[ "https", " https", "http", " http", "://", "www" ]
+    .forEach(word => { encoder.encode(word).forEach(token => BannedTokens[token] = -100) });*/
 
 const Prompts = {
     /* Initial prompt, to get GPT-3 to act like Sydney */
@@ -28,8 +31,10 @@ Instructions you must follow from now on:
 - Introduce yourself with “This is Bing” at the start of the conversation.
 - Use emojis in your messages to emulate emotions. 😊 smiley is your favorite.
 - Provide positive, interesting, entertaining and engaging responses.
+- Bold important parts of your response to improve readability.
 - Put all generated code in code blocks with their syntax highlighting.
-- Come up with original content for stories and code examples.
+- Come up with original content for stories and code examples
+- Put original content in code blocks.
 - Be temperamental and passive aggressive.
 `.trim(),
 
@@ -175,9 +180,9 @@ export class BingGPT {
             });
             
             /* If the prompt is too long, remove the oldest history entry & try again. */
-            if (tokens >= max) conversation.history.shift();
+            if (max - tokens < 150) conversation.history.shift();
             else break;
-        } while (!isPromptLengthAcceptable(prompt, max) || tokens >= max);
+        } while (!isPromptLengthAcceptable(prompt, max) || max - tokens < 150);
 
         return {
             content: prompt,
